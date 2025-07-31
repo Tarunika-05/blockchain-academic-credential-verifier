@@ -1,0 +1,4 @@
+node_modules/
+.env
+hardhat_cache/
+artifacts/
