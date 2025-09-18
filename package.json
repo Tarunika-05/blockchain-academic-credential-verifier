@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.2",
+    "ethers": "^6.15.0",
+    "minimist": "^1.2.8"
+  }
+}
