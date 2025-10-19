@@ -8,19 +8,35 @@ const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY;
 
 async function uploadMetadata() {
-  if (!args.name || !args.degree || !args.year || !args.student) {
-    throw new Error("Provide --name --degree --year --student");
+  if (
+    !args.name ||
+    !args.degree ||
+    !args.year ||
+    !args.student ||
+    !args.cgpa ||
+    !args.university
+  ) {
+    throw new Error(
+      "Provide --name --degree --year --student --cgpa --university"
+    );
   }
 
+  const { name, degree, year, student, cgpa, university } = args;
+
   const metadata = {
-    name: `${args.degree} - ${args.name}`,
-    description: "Credential issued by DAU Prototype, 2025",
+    name: `${degree} - ${name}`,
+    description: `Credential issued by ${university}, 2025`,
     image: "https://via.placeholder.com/200",
     attributes: [
-      { trait_type: "Degree", value: args.degree },
-      { trait_type: "Year", value: args.year },
-      { trait_type: "Issued To", value: args.name },
+      { trait_type: "Degree", value: degree },
+      { trait_type: "Year", value: year },
+      { trait_type: "CGPA", value: cgpa },
+      { trait_type: "Issued To", value: name },
+      { trait_type: "Student Address", value: student },
+      { trait_type: "University", value: university },
     ],
+    issuedBy: university,
+    timestamp: new Date().toISOString(),
   };
 
   const res = await axios.post(

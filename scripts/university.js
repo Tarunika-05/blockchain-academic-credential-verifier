@@ -65,20 +65,40 @@ async function main() {
 
   // ---------------- ACTIONS ----------------
   if (args.action === "propose") {
+    // Validate all required fields
+    if (
+      !args.name ||
+      !args.degree ||
+      !args.year ||
+      !args.student ||
+      !args.cgpa ||
+      !args.university
+    ) {
+      console.log(
+        "❌ Provide --name --degree --year --student --cgpa --university"
+      );
+      return;
+    }
     if (!args.ipfs) {
       console.log("❌ Provide --ipfs <metadataURI>");
       return;
     }
-    if (!args.student || !ethers.isAddress(args.student)) {
-      console.log("❌ Provide --student <0xaddress>");
+    if (!ethers.isAddress(args.student)) {
+      console.log("❌ Provide a valid --student <0xaddress>");
       return;
     }
 
     console.log(`→ University: ${uniAddress}`);
     console.log(`→ Student:    ${args.student}`);
+    console.log(`→ Name:       ${args.name}`);
+    console.log(`→ Degree:     ${args.degree}`);
+    console.log(`→ Year:       ${args.year}`);
+    console.log(`→ CGPA:       ${args.cgpa}`);
+    console.log(`→ University: ${args.university}`);
     console.log(`→ IPFS:       ${args.ipfs}`);
 
     try {
+      // Send transaction to propose credential with IPFS metadata URI
       const tx = await contractWithSigner.proposeCredential(
         args.student,
         args.ipfs
@@ -106,6 +126,75 @@ async function main() {
       );
     } catch (err) {
       console.error("⚠️ Contract call failed:", err.message || err);
+    }
+  }
+  // Add after your existing if/else actions in main()
+  else if (args.action === "list") {
+    console.log(`→ University: ${uniAddress}`);
+
+    const count = await contractWithSigner.proposalCount();
+    console.log(`Total proposals on-chain: ${count.toString()}`);
+
+    const pending = [];
+
+    for (let i = 1; i <= count; i++) {
+      // ✅ Use the getter instead of contract.proposals(i)
+      const p = await contractWithSigner.getProposalInfo(i);
+
+      // Only proposals by this university
+      if (p.proposer.toLowerCase() !== uniAddress.toLowerCase()) continue;
+
+      pending.push({
+        id: p.id.toString(),
+        student: p.student,
+        approvals: Number(p.approvals),
+        rejections: Number(p.rejections),
+        minted: p.minted,
+        metadataURI: p.metadataURI,
+      });
+    }
+
+    if (pending.length === 0) {
+      console.log("No proposals found for this university.");
+    } else {
+      console.log("Pending / all proposals for this university:");
+      console.table(pending);
+    }
+  } else if (args.action === "list-others") {
+    console.log(
+      `→ University: ${uniAddress} (checking other universities' proposals)`
+    );
+
+    const count = await contractWithSigner.proposalCount();
+    console.log(`Total proposals on-chain: ${count.toString()}`);
+
+    const others = [];
+
+    for (let i = 1; i <= count; i++) {
+      const p = await contractWithSigner.getProposalInfo(i);
+
+      // Skip your own university
+      if (p.proposer.toLowerCase() === uniAddress.toLowerCase()) continue;
+
+      // Skip already minted proposals
+      if (p.minted) continue;
+
+      others.push({
+        id: p.id.toString(),
+        proposer: p.proposer,
+        student: p.student,
+        approvals: Number(p.approvals),
+        rejections: Number(p.rejections),
+        minted: p.minted,
+        metadataURI: p.metadataURI,
+      });
+    }
+
+    if (others.length === 0) {
+      console.log("No pending proposals from other universities.");
+    } else {
+      console.log("Pending proposals from other universities:");
+      console.table(others);
     }
   } else if (args.action === "mint") {
     if (!args.id) {

@@ -1,4 +1,3 @@
-// scripts/student.js
 const axios = require("axios");
 require("dotenv").config();
 const { ethers } = require("ethers");
@@ -80,7 +79,47 @@ async function main() {
       const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
       try {
         const res = await axios.get(url);
-        console.log("   📄 Metadata:", res.data);
+        const data = res.data;
+
+        // Print all relevant details
+        console.log("   📄 Metadata:");
+        console.log(`     Name:       ${data.name || "-"}`);
+        console.log(
+          `     Degree:     ${
+            data.attributes?.find((a) => a.trait_type === "Degree")?.value ||
+            "-"
+          }`
+        );
+        console.log(
+          `     Year:       ${
+            data.attributes?.find((a) => a.trait_type === "Year")?.value || "-"
+          }`
+        );
+        console.log(
+          `     CGPA:       ${
+            data.attributes?.find((a) => a.trait_type === "CGPA")?.value || "-"
+          }`
+        );
+        console.log(
+          `     Student:    ${
+            data.attributes?.find((a) => a.trait_type === "Issued To")?.value ||
+            "-"
+          }`
+        );
+        console.log(
+          `     Address:    ${
+            data.attributes?.find((a) => a.trait_type === "Student Address")
+              ?.value || "-"
+          }`
+        );
+        console.log(
+          `     University: ${
+            data.attributes?.find((a) => a.trait_type === "University")
+              ?.value || "-"
+          }`
+        );
+        console.log(`     Issued By:  ${data.issuedBy || "-"}`);
+        console.log(`     Timestamp:  ${data.timestamp || "-"}`);
       } catch (err) {
         console.error("   ❌ Could not fetch metadata:", err.message);
       }
